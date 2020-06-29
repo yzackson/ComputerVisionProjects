@@ -18,8 +18,9 @@ function y = identifica_forma(I);
 %	circularidade da forma deve ser maior que 0.98, que corresponde a um
 %	círculo com uma margem de tolerância de 0.02 a imperfeição da forma.
 %
-%	RETANGULO -> a propriedade "Area" da forma deve ser igual a area
-%   calculada utilizando a proprieade "BoundingBox".
+%	RETANGULO -> possui uma circularidade de aprox 0.71 então usamos um 
+%   parametro para caso a circularidade esteja proximo deste valor, então 
+%   saberemos que se trata de um retangulo.
 %
 %   TRIANGULO -> o "Extent" da forma deve estar entre 0.5 e 0.55. Visto que
 %   a area dos triangulos correspondem a metade da area do quadrado formado
@@ -33,10 +34,12 @@ function y = identifica_forma(I);
 %   estrela ou triangulo.
 %
 %   ELIPSE -> a elipse é verificada de acordo com sua ecentricidade. Se a
-%   ecentricidade calculada pela função regionprops for igual a
+%   ecentricidade calculada pela função regionprops for maior do que 0.8
+%   (valor encontrado após alguns testes) então podemos dizer que é uma
+%   elipse.
+
 %   ecentricidade calculada pela formula e = sqrt((maior eixo/2)^2- (menor
-%   eixo/2)^2)/a e também pelo fato de ser a última verificação significa
-%   que a forma não é nenhuma das anteriores, sobrando apenas a elipse.
+%   eixo/2)^2)/a.
 %
 % Para mostrar o resultado a função mostra a imagem na tela para o usuário
 % tendo como título o nome da forma identificada
@@ -59,8 +62,11 @@ e = c/a;
 if (imagem.Circularity >= 0.98) %% CÍRCULO
     figure;imshow(im);title('Isto é um Círculo');
     
-elseif ((imagem.Area == (imagem.BoundingBox(3)*imagem.BoundingBox(4))) && imagem.BoundingBox(3)~= imagem.BoundingBox(4))) %% RETÂNGULO
+elseif (imagem.Circularity > 0.7 && imagem.Circularity < 0.715) %% RETÂNGULO
     figure;imshow(im);title('Isto é um Retângulo');
+
+elseif (imagem.Eccentricity > 0.8 && imagem.Eccentricity < 0.89) %% ELIPSE
+    figure;imshow(im);title('Isto é uma Elipse');
     
 elseif ((imagem.Extent >= 0.50) || (imagem.Extent <= 0.55)) %% TRIÂNGULO OU ESTRELA
     [Edge_im,thres] = edge(bw,'sobel');
@@ -70,12 +76,9 @@ elseif ((imagem.Extent >= 0.50) || (imagem.Extent <= 0.55)) %% TRIÂNGULO OU ESTR
     
     if (length(lines) == 3) %% TRIÂNGULO
         figure;imshow(im);title('Isto é um Triângulo');
-    elseif (length(lines) == 13) %% ESTRELA 
+    elseif (length(lines) >= 12  && length(lines) <=15) %% ESTRELA 
         figure;imshow(im);title('Isto é uma Estrela');
     end
-    
-elseif (e == imagem.Eccentricity) %% ELIPSE
-    figure;imshow(im);title('Isto é uma Elipse');
     
 else %% FORMA NÃO IDENTIFICADA
     figure;imshow(im);title('Forma não reconhecida');
